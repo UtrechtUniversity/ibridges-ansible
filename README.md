@@ -1,3 +1,7 @@
+# An ansible module for iBridges
+
+[iBridges](https://github.com/UtrechtUniversity/iBridges) is a Python package for syncing data and managing metadata on iRODS servers in a userfriendly way, developed at Utrecht University. This repository contains an Ansible module that calls iBridges to download or sync a data collection from iRODS.
+
 Usage example:
 
 ```
