@@ -1,11 +1,11 @@
-# Copyright: (c) 2018, Terry Jones <terry.jones@example.org>
+# Copyright: (c) 2024, Utrecht University
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 DOCUMENTATION = r'''
 ---
-module: ibridges
+module: ibridges_sync
 
 short_description: Download or sync files from an iRODS server using iBridges.
 
@@ -38,12 +38,15 @@ options:
         required: true
         type: str
     mode:
-        description: What should be done with the data. Valid values are 'sync_up', 'sync_down', 'get'.
+        description: What should be done with the data. Valid values are 'up', 'down'.
         required: false
         type: str
         default: get
     ignore_checksum:
-        description: Should checksums be ignored when deciding which files should be synced?
+        description: |
+          If set to True, only the file size is used for determining whether synchronization is
+          needed, rather than size and checksum value. This mode gives a potentially faster
+          operation but the result is less accurate.
         required: false
         type: bool
         default: False
@@ -64,20 +67,22 @@ author:
 
 EXAMPLES = r'''
 # Pass in a message
-- name: Test with a message
-  my_namespace.my_collection.my_test:
-    name: hello world
+- name: Sync an iRODS path to a local path
+  uusrc.ibridges.sync:
+    mode: down
+    env_file: /home/user/.irods/irods_environment.json
+    irods_path: ResearchData/testdata
+    local_path: /tmp/test
+    password: letmein
 
-# pass in a message and have changed true
-- name: Test with a message and changed output
-  my_namespace.my_collection.my_test:
-    name: hello world
-    new: true
-
-# fail the module
-- name: Test failure of the module
-  my_namespace.my_collection.my_test:
-    name: fail me
+# Sync a local path to an iRODS path
+- name: Sync an iRODS path to a local path
+  uusrc.ibridges.sync:
+    mode: up
+    env_file: /home/user/.irods/irods_environment.json
+    irods_path: ResearchData/testdata
+    local_path: /tmp/test
+    password: letmein
 '''
 
 RETURN = r'''
@@ -114,19 +119,14 @@ def run_module():
     # seed the result dict in the object
     result = dict(
         changed=False,
-        message=''
+        msg='',
+        stdout=''
     )
 
     module = AnsibleModule(
         argument_spec=module_args,
-        supports_check_mode=True  # !!
+        supports_check_mode=True
     )
-
-    # if the user is working with this module in only check mode we do not
-    # want to make any changes to the environment, just return the current
-    # state with no modifications
-    if module.check_mode:
-        module.exit_json(**result)
 
     from ibridges import Session
     from pathlib import Path
@@ -135,44 +135,45 @@ def run_module():
     elif module.params['env_file']:
         session = Session(irods_env_path=module.params['env_file'], password=module.params['password'])
     else:
-        module.fail_json(msg='Neither env nor env_file were specified, do not know how to continue.', **result)
+        module.fail_json(msg='Neither env nor env_file were specified, do not know how to continue.', changed=False)
 
-    if module.params['mode'] == 'get':
-        from ibridges import download
-        download(session, module.params['irods_path'], module.params['local_path'])
-    else:
+    try:
         from ibridges import sync_data, IrodsPath
         locations = (module.params['local_path'], IrodsPath(session, module.params['irods_path']))
 
-        if module.params['mode'] == 'sync_up':
+        if module.params['mode'] == 'up':
             source = locations[0]
             target = locations[1]
-        else:
+        elif module.params['mode'] == 'down':
             source = locations[1]
             target = locations[0]
+        else:
+            module.fail_json(msg='Unsupported sync mode "{}", choose either "up" or "down".'.format(module.params['mode']), changed=False)
 
-        sync_data(
-            session=session,
-            source=source,
-            target=target,
-            max_level=None if module.params['max_level'] == 0 else module.params['max_level'],
-            ignore_checksum=module.params['ignore_checksum'],
-            copy_empty_folders=module.params['copy_empty_folders'],
-            dry_run=False,
-        )
+        from contextlib import redirect_stdout
+        from io import StringIO
+        ibridges_stdout = StringIO()
 
-    # use whatever logic you need to determine whether or not this module
-    # made any modifications to your target
-    result['changed'] = True
+        with redirect_stdout(ibridges_stdout):
+            sync_result = sync_data(
+                session=session,
+                source=source,
+                target=target,
+                max_level=None if module.params['max_level'] == 0 else module.params['max_level'],
+                ignore_checksum=module.params['ignore_checksum'],
+                copy_empty_folders=module.params['copy_empty_folders'],
+                dry_run=module.check_mode,
+            )
+    except Exception as e:
+        module.fail_json(msg='Encountered an error when executing iBridges sync: {}'.format(repr(e)), changed=False)
 
-    # during the execution of the module, if there is an exception or a
-    # conditional state that effectively causes a failure, run
-    # AnsibleModule.fail_json() to pass in the message and the result
-    # if module.params['name'] == 'fail me':
-    #     module.fail_json(msg='You requested this to fail', **result)
-
-    # in the event of a successful module execution, you will want to
-    # simple AnsibleModule.exit_json(), passing the key/value results
+    if module.check_mode:
+        result['msg'] = 'Executed iBridges dry run.'
+        result['changed'] = False
+    else:
+        result['changed'] = True if len(sync_result[0])+len(sync_result[1]) == 0 else False
+    result['stdout'] = ibridges_stdout.getvalue()
+    result['stdout_lines'] = result['stdout'].split("\n")
     module.exit_json(**result)
 
 
