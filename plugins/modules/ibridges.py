@@ -38,10 +38,25 @@ options:
         required: true
         type: str
     mode:
-        description: What should be done with the data
+        description: What should be done with the data. Valid values are 'sync_up', 'sync_down', 'get'.
         required: false
         type: str
         default: get
+    ignore_checksum:
+        description: Should checksums be ignored when deciding which files should be synced?
+        required: false
+        type: bool
+        default: False
+    copy_empty_folders:
+        description: Should empty folders be skipped?
+        required: false
+        type: bool
+        default: True
+    max_level:
+        description: In sync mode, how many directory levels deep should files be synced? Default (0) means no maximum.
+        required: false
+        type: int
+        default: 0
 
 author:
     - Dawa Ometto (@dometto)
@@ -90,26 +105,21 @@ def run_module():
         env=dict(type='str', required=False),
         mode=dict(type='str', required=False, default='get'),
         env_file=dict(type='str', required=False, default="~/.irods/irods_environment.json"),
-        password=dict(type='str', required=True, no_log=True)
+        password=dict(type='str', required=True, no_log=True),
+        max_level=dict(type='int', required=False, default=0),
+        ignore_checksum=dict(type='bool', required=False, default=False),
+        copy_empty_folders=dict(type='bool', required=False, default=True),
     )
 
     # seed the result dict in the object
-    # we primarily care about changed and state
-    # changed is if this module effectively modified the target
-    # state will include any data that you want your module to pass back
-    # for consumption, for example, in a subsequent task
     result = dict(
         changed=False,
         message=''
     )
 
-    # the AnsibleModule object will be our abstraction working with Ansible
-    # this includes instantiation, a couple of common attr would be the
-    # args/params passed to the execution, as well as if the module
-    # supports check mode
     module = AnsibleModule(
         argument_spec=module_args,
-        supports_check_mode=True
+        supports_check_mode=True  # !!
     )
 
     # if the user is working with this module in only check mode we do not
@@ -117,9 +127,6 @@ def run_module():
     # state with no modifications
     if module.check_mode:
         module.exit_json(**result)
-
-    # manipulate or modify the state as needed (this is going to be the
-    # part where your module will do what it needs to do)
 
     from ibridges import Session
     from pathlib import Path
@@ -135,20 +142,23 @@ def run_module():
         download(session, module.params['irods_path'], module.params['local_path'])
     else:
         from ibridges import sync_data, IrodsPath
+        locations = (module.params['local_path'], IrodsPath(session, module.params['irods_path']))
+
         if module.params['mode'] == 'sync_up':
-            source = module.params['local_path']
-            target = IrodsPath(session, module.params['irods_path'])
-        elif module.params['mode'] == 'sync_down':
-            source = IrodsPath(session, module.params['irods_path'])
-            target = module.params['local_path']
+            source = locations[0]
+            target = locations[1]
+        else:
+            source = locations[1]
+            target = locations[0]
+
         sync_data(
             session=session,
             source=source,
             target=target,
-            max_level=None,
+            max_level=None if module.params['max_level'] == 0 else module.params['max_level'],
+            ignore_checksum=module.params['ignore_checksum'],
+            copy_empty_folders=module.params['copy_empty_folders'],
             dry_run=False,
-            ignore_checksum=False,
-            copy_empty_folders=True,
         )
 
     # use whatever logic you need to determine whether or not this module
