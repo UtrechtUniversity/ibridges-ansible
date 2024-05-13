@@ -1,0 +1,17 @@
+namespace: "uusrc"
+name: "ibridges"
+version: "0.1"
+readme: "README.md"
+authors:
+    - "Dawa Ometto (https://github.com/dometto)"
+    - "Utrecht University (research.engineering@uu.nl)"
+# dependencies:
+#     "other_namespace.collection1": ">=1.0.0"
+#     "other_namespace.collection2": ">=2.0.0,<3.0.0"
+#     "anderson55.my_collection": "*"    # note: "*" selects the highest version available
+license:
+    - "MIT"
+tags:
+    - demo
+    - collection
+repository: "https://www.github.com/UtrechtUniversity/ibridges-ansible"
