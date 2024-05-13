@@ -171,7 +171,7 @@ def run_module():
         result['msg'] = 'Executed iBridges dry run.'
         result['changed'] = False
     else:
-        result['changed'] = True if len(sync_result[0])+len(sync_result[1]) == 0 else False
+        result['changed'] = True if len(sync_result[0]) + len(sync_result[1]) == 0 else False
     result['stdout'] = ibridges_stdout.getvalue()
     result['stdout_lines'] = result['stdout'].split("\n")
     module.exit_json(**result)
