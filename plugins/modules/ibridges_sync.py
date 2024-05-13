@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # Copyright: (c) 2024, Utrecht University
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 from __future__ import (absolute_import, division, print_function)
@@ -148,7 +149,7 @@ def run_module():
             source = locations[1]
             target = locations[0]
         else:
-            module.fail_json(msg='Unsupported sync mode "{}", choose either "up" or "down".'.format(module.params['mode']), changed=False)
+            module.fail_json(msg='Unsupported sync mode "{mode}", choose either "up" or "down".'.format(mode=module.params['mode']), changed=False)
 
         from contextlib import redirect_stdout
         from io import StringIO
