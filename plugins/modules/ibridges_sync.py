@@ -42,15 +42,7 @@ options:
         description: What should be done with the data. Valid values are 'up', 'down'.
         required: false
         type: str
-        default: get
-    ignore_checksum:
-        description: |
-          If set to True, only the file size is used for determining whether synchronization is
-          needed, rather than size and checksum value. This mode gives a potentially faster
-          operation but the result is less accurate.
-        required: false
-        type: bool
-        default: False
+        default: down
     copy_empty_folders:
         description: Should empty folders be skipped?
         required: false
@@ -109,11 +101,10 @@ def run_module():
         irods_path=dict(type='str', required=True),
         local_path=dict(type='str', required=True),
         env=dict(type='str', required=False),
-        mode=dict(type='str', required=False, default='get'),
+        mode=dict(type='str', required=False, default='down'),
         env_file=dict(type='str', required=False, default="~/.irods/irods_environment.json"),
         password=dict(type='str', required=True, no_log=True),
         max_level=dict(type='int', required=False, default=0),
-        ignore_checksum=dict(type='bool', required=False, default=False),
         copy_empty_folders=dict(type='bool', required=False, default=True),
     )
 
@@ -141,7 +132,6 @@ def run_module():
     try:
         from ibridges import sync_data, IrodsPath
         locations = (module.params['local_path'], IrodsPath(session, module.params['irods_path']))
-
         if module.params['mode'] == 'up':
             source = locations[0]
             target = locations[1]
@@ -150,7 +140,7 @@ def run_module():
             target = locations[0]
         else:
             module.fail_json(msg='Unsupported sync mode "{mode}", choose either "up" or "down".'.format(mode=module.params['mode']), changed=False)
-
+        
         from contextlib import redirect_stdout
         from io import StringIO
         ibridges_stdout = StringIO()
@@ -161,7 +151,6 @@ def run_module():
                 source=source,
                 target=target,
                 max_level=None if module.params['max_level'] == 0 else module.params['max_level'],
-                ignore_checksum=module.params['ignore_checksum'],
                 copy_empty_folders=module.params['copy_empty_folders'],
                 dry_run=module.check_mode,
             )
