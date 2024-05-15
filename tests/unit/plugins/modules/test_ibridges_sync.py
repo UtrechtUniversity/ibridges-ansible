@@ -27,12 +27,13 @@ def set_module_args(args):
     args = json.dumps({'ANSIBLE_MODULE_ARGS': args})
     basic._ANSIBLE_ARGS = to_bytes(args)
 
-def setup_sync(args={}):
-    if not args:
-        args = copy.deepcopy(DEFAULT_ARGS)
-        args['env'] = {
-        'irods_host': 'nowhere'
-        }
+def setup_sync(check_mode=False, **kwargs):
+    args = copy.deepcopy(DEFAULT_ARGS)
+    args['env'] = {
+    'irods_host': 'nowhere'
+    }
+    args['_ansible_check_mode'] = check_mode
+    args = dict(**args, **kwargs)
     set_module_args(args)
     return args
 
@@ -76,11 +77,11 @@ class TestiBridgesSync(unittest.TestCase):
 
     @patch('ibridges.sync_data')
     @patch('ibridges.Session')
-    def test_module_calls_ibridges(self, mocked_session, mocked_sync):
+    def test_sync_down(self, mocked_session, mocked_sync):
         mocked_session.return_value = MockedSession()
         mocked_sync.return_value = {
-        'changed_files': [],
-        'changed_folders': []
+        'changed_files': ['foo'],
+        'changed_folders': ['bar']
         }
 
         args = setup_sync()
@@ -89,10 +90,12 @@ class TestiBridgesSync(unittest.TestCase):
             ibridges_sync.main()
         
         expectation = {
-            'changed': False,
+            'changed': True,
             'msg': '',
             'stdout': '',
-            'stdout_lines': ['']
+            'stdout_lines': [''],
+            'changed_files': ['foo'],
+            'changed_folders': ['bar']
         }
         self.assertEqual(context.exception.args[0], expectation)
 
@@ -109,3 +112,58 @@ class TestiBridgesSync(unittest.TestCase):
         }
         for expectation in expectations.items():
             self.assertEqual(call.kwargs[expectation[0]], expectation[1])
+
+    @patch('ibridges.sync_data')
+    @patch('ibridges.Session')
+    def test_sync_up(self, mocked_session, mocked_sync):
+        mocked_session.return_value = MockedSession()
+        mocked_sync.return_value = {
+        'changed_files': [],
+        'changed_folders': []
+        }
+
+        args = setup_sync(mode='up')
+
+        with self.assertRaises(AnsibleExitJson) as context:
+            ibridges_sync.main()
+        
+        expectation = {
+            'changed': False,
+            'msg': '',
+            'stdout': '',
+            'stdout_lines': [''],
+            'changed_files': [],
+            'changed_folders': []
+        }
+        self.assertEqual(context.exception.args[0], expectation)
+
+        mocked_sync.assert_called()
+        call = mocked_sync.mock_calls[0]
+
+        self.assertEqual(call.kwargs['source'], args['local_path'])
+        self.assertEqual(call.kwargs['target'].absolute_path(), args['irods_path'])
+
+
+    @patch('ibridges.sync_data')
+    @patch('ibridges.Session')
+    def test_sync_dry_run(self, mocked_session, mocked_sync):
+        mocked_session.return_value = MockedSession()
+        mocked_sync.return_value = {
+        'changed_files': ['foo'],
+        'changed_folders': ['bar']
+        }
+
+        args = setup_sync(check_mode=True)
+
+        with self.assertRaises(AnsibleExitJson) as context:
+            ibridges_sync.main()
+        
+        expectation = {
+            'changed': False,
+            'msg': 'Executed iBridges dry run.',
+            'stdout': '',
+            'stdout_lines': [''],
+            'changed_files': ['foo'],
+            'changed_folders': ['bar']
+        }
+        self.assertEqual(context.exception.args[0], expectation)
