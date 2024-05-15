@@ -132,19 +132,21 @@ def run_module():
         else:
             module.fail_json(msg='Unsupported sync mode "{mode}", choose either "up" or "down".'.format(mode=module.params['mode']), changed=False)
 
-        from contextlib import redirect_stdout
+        from contextlib import redirect_stdout, redirect_stderr
         from io import StringIO
         ibridges_stdout = StringIO()
+        ibridges_stderr = StringIO()
 
         with redirect_stdout(ibridges_stdout):
-            sync_result = sync_data(
-                session=session,
-                source=source,
-                target=target,
-                max_level=None if module.params['max_level'] == 0 else module.params['max_level'],
-                copy_empty_folders=module.params['copy_empty_folders'],
-                dry_run=module.check_mode,
-            )
+            with redirect_stderr(ibridges_stderr):
+                sync_result = sync_data(
+                    session=session,
+                    source=source,
+                    target=target,
+                    max_level=None if module.params['max_level'] == 0 else module.params['max_level'],
+                    copy_empty_folders=module.params['copy_empty_folders'],
+                    dry_run=module.check_mode,
+                )
     except Exception as e:
         module.fail_json(msg='Encountered an error when executing iBridges sync: {}'.format(repr(e)), changed=False)
 
@@ -157,6 +159,10 @@ def run_module():
     result['changed_folders'] = sync_result['changed_folders']
     result['stdout'] = ibridges_stdout.getvalue()
     result['stdout_lines'] = result['stdout'].split("\n")
+
+    result['stderr'] = ibridges_stderr.getvalue()
+    result['stderr_lines'] = result['stderr'].split("\n")
+
     module.exit_json(**result)
 
 
