@@ -25,14 +25,9 @@ options:
         description: The local path (on the Ansible target) to be copied to or synced from.
         required: true
         type: str
-    env_file:
-        description: The local path (on the Ansible target) to read the iRODS environment file from.
-        required: false
-        type: str
-        default: ~/.irods/irods_environment.json
     env:
         description: A dictionary containing all the information about your iRODS environment.
-        required: false
+        required: true
         type: str
     password:
         description: The password to use to connect to iRODS.
@@ -63,7 +58,7 @@ EXAMPLES = r'''
 - name: Sync an iRODS path to a local path
   uusrc.ibridges.sync:
     mode: down
-    env_file: /home/user/.irods/irods_environment.json
+    env: /home/user/.irods/irods_environment.json
     irods_path: ResearchData/testdata
     local_path: /tmp/test
     password: letmein
@@ -72,7 +67,9 @@ EXAMPLES = r'''
 - name: Sync an iRODS path to a local path
   uusrc.ibridges.sync:
     mode: up
-    env_file: /home/user/.irods/irods_environment.json
+    env:
+      irods_host: irods.foo.com
+      irods_home: /zone/foo
     irods_path: ResearchData/testdata
     local_path: /tmp/test
     password: letmein
@@ -100,9 +97,8 @@ def run_module():
     module_args = dict(
         irods_path=dict(type='str', required=True),
         local_path=dict(type='str', required=True),
-        env=dict(type='str', required=False),
+        env=dict(type='str', required=True),
         mode=dict(type='str', required=False, default='down'),
-        env_file=dict(type='str', required=False, default="~/.irods/irods_environment.json"),
         password=dict(type='str', required=True, no_log=True),
         max_level=dict(type='int', required=False, default=0),
         copy_empty_folders=dict(type='bool', required=False, default=True),
@@ -122,12 +118,7 @@ def run_module():
 
     from ibridges import Session
     from pathlib import Path
-    if module.params['env']:
-        session = Session(irods_env=module.params['env'], password=module.params['password'])
-    elif module.params['env_file']:
-        session = Session(irods_env_path=module.params['env_file'], password=module.params['password'])
-    else:
-        module.fail_json(msg='Neither env nor env_file were specified, do not know how to continue.', changed=False)
+    session = Session(irods_env=module.params['env'], password=module.params['password'])
 
     try:
         from ibridges import sync_data, IrodsPath
