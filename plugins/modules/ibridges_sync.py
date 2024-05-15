@@ -100,7 +100,7 @@ def run_module():
     module_args = dict(
         irods_path=dict(type='str', required=True),
         local_path=dict(type='str', required=True),
-        env=dict(type='str', required=False),
+        env=dict(type='dict', required=False),
         mode=dict(type='str', required=False, default='down'),
         env_file=dict(type='str', required=False, default="~/.irods/irods_environment.json"),
         password=dict(type='str', required=True, no_log=True),
