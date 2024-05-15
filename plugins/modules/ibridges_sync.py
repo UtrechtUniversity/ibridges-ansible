@@ -155,8 +155,16 @@ def run_module():
         result['changed'] = False
     else:
         result['changed'] = False if len(sync_result['changed_files']) + len(sync_result['changed_folders']) == 0 else True
-    result['changed_files'] = sync_result['changed_files']
-    result['changed_folders'] = sync_result['changed_folders']
+
+    result['changed_files'] = [ {'path': file.path} for file in sync_result['changed_files'] ] 
+    result['changed_folders'] = [
+        {
+          'path': folder.path,
+          'n_files': folder.n_files,
+          'n_folders': folder.n_folders
+        } for folder in sync_result['changed_folders']
+    ]
+
     result['stdout'] = ibridges_stdout.getvalue()
     result['stdout_lines'] = result['stdout'].split("\n")
 
