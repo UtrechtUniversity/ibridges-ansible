@@ -140,7 +140,7 @@ def run_module():
             target = locations[0]
         else:
             module.fail_json(msg='Unsupported sync mode "{mode}", choose either "up" or "down".'.format(mode=module.params['mode']), changed=False)
-        
+
         from contextlib import redirect_stdout
         from io import StringIO
         ibridges_stdout = StringIO()
