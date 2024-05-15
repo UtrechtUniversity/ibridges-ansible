@@ -1,23 +1,36 @@
-- name: Test ibridges module
+- name: iBridges Sync ResearchCloud Component
   hosts: localhost
-  vars_prompt:
-    - name: password
-      prompt: Enter iRODS password
-    - name: env_file
-      prompt: Enter absolute path to irods environment file
-      private: false
-    - name: irods_path
-      prompt: Enter path to copy from irods
-      private: false
-    - name: local_path
-      prompt: Enter path to copy to locally
-      private: false
-
+  vars:
+    _ibridges_user: "{{ ibridges_user | default(ibridges_target_path | regex_search('^\/home\/(.*)\/.*', '\\1') | default([], true) | first ) }}"
+    _ibridges_group: "{{ ibridges_group | default(ibridges_target_path | regex_search('^\/home\/(.*)\/.*', '\\1') | default([], true) | first ) }}"
+  
   tasks:
-  - name: Download testdata to localhost
-    ibridges:
-      state: present
-      env_file: "{{ env_file }}"
-      irods_path: "{{ irods_path }}"
-      local_path: "{{ local_path }}"
-      password: "{{ password }}"
+
+  - name: Create target directory if it does not exist
+    file:
+      path: "{{ ibridges_target_path }}/{{ item | basename }}"
+      state: directory
+      mode: "0750"
+      owner: "{{ _ibridges_user | default('root', true) }}"
+      group: "{{ _ibridges_group | default('root', true) }}"
+    with_items: "{{ ibridges_irods_path.split(',') }}"
+
+  - name: iBridges sync
+    ibridges_sync:
+      mode: down
+      env: "{{ ibridges_env }}"
+      irods_path: "{{ ibridges_irods_path }}"
+      local_path: "{{ ibridges_target_path }}/{{ item | basename }}"
+      password: "{{ ibridges_password }}"
+    check_mode: "{{ ibridges_dry_run | default(false) | bool }}"
+    with_items: "{{ ibridges_irods_path.split(',') }}"
+
+  - name: Change permissions of downloaded files
+    file:
+      path: "{{ ibridges_target_path }}/{{ item | basename }}"
+      state: directory
+      recurse: true
+      mode: "0750"
+      owner: "{{ _ibridges_user | default('root', true) }}"
+      group: "{{ _ibridges_group | default('root', true) }}"
+    with_items: "{{ ibridges_irods_path.split(',') }}"
