@@ -18,7 +18,7 @@
   - name: iBridges sync
     ibridges_sync:
       mode: down
-      env: "{{ ibridges_env }}"
+      env: '{{ ibridges_env | regex_replace("\\", "") }}'
       irods_path: "{{ ibridges_irods_path }}"
       local_path: "{{ ibridges_target_path }}/{{ item | basename }}"
       password: "{{ ibridges_password }}"
