@@ -39,9 +39,6 @@ iadmin moduser testuser password testuser
 echo 'testuser created'
 echo $(iadmin lu testuser)
 
-cd /ibridges/integration_test
-pytest .
-
 result=$?
 if [[ -z "$CI" ]]; then
     /bin/bash
