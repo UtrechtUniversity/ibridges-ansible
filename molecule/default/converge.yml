@@ -1,0 +1,19 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: iBridges sync
+      ibridges_sync:
+        mode: up
+        env: # see <repo_root>/docker/environments/plain-irods/irods_environment_testuser.json
+          irods_host: irods-catalog-provider # container name
+          irods_port: 1247
+          irods_user_name: testuser
+          irods_default_resource: "demoResc"
+          irods_home: /tempZone/home/testuser
+          irods_zone_name: tempZone
+        irods_path: "~/"
+        local_path: "/testfiles"
+        password: testuser
+      check_mode: false

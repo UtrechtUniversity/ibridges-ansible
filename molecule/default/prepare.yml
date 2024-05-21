@@ -1,0 +1,55 @@
+---
+- name: Prepare
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Start irods testing environment
+      delegate_to: localhost
+      community.docker.docker_compose_v2:
+        project_name: ibridges_irods_test
+        definition:
+          networks:
+            common_network:
+              name: "{{ lookup('env', 'test_network_name')}}"
+              external: true
+          services:
+            irods-catalog:
+              image: irods-catalog
+              networks:
+                - common_network
+              build:
+                  context: ./docker/irods_catalog
+              environment:
+                  - POSTGRES_PASSWORD=testpassword
+            irods-catalog-provider:
+              image: irods-catalog-provider
+              networks:
+                - common_network
+              build:
+                  context: ./docker/irods_catalog_provider
+              # network_mode: host
+              depends_on:
+                  - irods-catalog
+            irods-client:
+              # network_mode: host
+              image: irods-client
+              platform: linux/amd64
+              build:
+                  context: .
+                  dockerfile: ./docker/irods_client/Dockerfile
+              depends_on:
+                  - irods-catalog-provider
+              tty: true
+              networks:
+                - common_network
+              environment:
+                - CI=1
+
+    - name: Install ibridges
+      ansible.builtin.pip:
+        name: ibridges
+  
+    - name: Create testfiles
+      ansible.builtin.copy:
+        dest: /testfiles
+        src: ./

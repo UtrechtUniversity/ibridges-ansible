@@ -1,0 +1,49 @@
+name: Run integration tests against iRODS
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+
+jobs:
+  molecule:
+    runs-on: ubuntu-22.04
+    if: |
+      ${{ ! contains(github.event.head_commit.message, '#nointegrationtests') &&
+            ( github.event_name == 'push' ||
+              github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
+            )
+       }}
+    env:
+      ANSIBLE_FORCE_COLOR: '1'
+      ANSIBLE_STDOUT_CALLBACK: yaml
+      REQUIREMENTS_FILE: molecule/default/requirements.txt
+    strategy:
+      fail-fast: false
+      matrix:
+        python:
+          - 3.12
+          - 3.11
+          - 3.9
+          - 3.8
+        ansible:
+          - 2.9
+          - 9.6.0
+        exclude:
+          - ansible: 2.9
+            python: 3.12
+          - ansible: 2.9
+            python: 3.11
+          - ansible: 2.9
+            python: 3.9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - run: pip install -U ansible==${{ matrix.ansible }}
+      - run: pip install -r ${{ env.REQUIREMENTS_FILE }}
+      - run: ansible-galaxy install -r requirements.yml
+      - name: Run molecule tests
+        run: molecule -vvv test

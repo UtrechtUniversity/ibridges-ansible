@@ -1,0 +1,13 @@
+---
+driver:
+  name: docker
+provisioner:
+  name: ansible
+  env:
+    test_network_name: irods_test_network
+platforms:
+  - name: ibridges-ubuntu22
+    image: geerlingguy/docker-ubuntu2204-ansible:latest
+    pre_build_image: true
+    networks:
+      - name: irods_test_network # must be the same as env['test_network_name'], but that variable is not yet available
