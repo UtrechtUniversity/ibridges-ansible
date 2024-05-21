@@ -2,4 +2,5 @@ ibridges
 molecule~=6.0
 molecule-plugins
 jmespath~=1.0
+requests~=2.31.0
 docker~=6.0

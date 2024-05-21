@@ -29,32 +29,11 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* /tmp/*
 
 RUN mkdir -p /root/.irods
-COPY docker/irods_client/environments/plain-irods/irods_environment.json /root/.irods
-COPY docker/irods_client/environments/plain-irods/irods_environment_testuser.json /root/.irods
+COPY environments/plain-irods/irods_environment.json /root/.irods
+COPY environments/plain-irods/irods_environment_testuser.json /root/.irods
 
-RUN mkdir -p /tmp
-ADD docker/irods_client/testdata /tmp/testdata/
-
-# install python 3
-RUN apt-get update && \
-    apt-get upgrade -y
-RUN apt-get install -y python3 git 
-	# python3-pip \
-	# git
-
-# Work around for a bug in Ubuntu 22.04: https://github.com/pypa/setuptools/issues/3269#ref-issue-1217398136
-RUN wget https://bootstrap.pypa.io/get-pip.py
-RUN python3 get-pip.py
-RUN mkdir -p /ibridges/integration_test
-ADD ibridges /ibridges/ibridges
-ADD docker/irods_client/tests ibridges/integration_test
-ADD docker/irods_client/environments/plain-irods ibridges/integration_test/environment
-ADD .git /ibridges/.git
-COPY pyproject.toml /ibridges
-RUN /usr/local/bin/pip3 install /ibridges
-RUN /usr/local/bin/pip3 install pytest tomli
 
 WORKDIR /
-COPY docker/irods_client/entrypoint.sh .
+COPY entrypoint.sh .
 RUN chmod u+x ./entrypoint.sh
 ENTRYPOINT bash -c "./entrypoint.sh"

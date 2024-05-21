@@ -1,0 +1,34 @@
+version: '3'
+networks:
+  common_network:
+    name: irods_test_network
+    external: true
+services:
+  irods-catalog:
+    image: irods-catalog
+    networks:
+      - common_network
+    build:
+        context: ../../docker/irods_catalog
+    environment:
+        - POSTGRES_PASSWORD=testpassword
+  irods-catalog-provider:
+    image: irods-catalog-provider
+    networks:
+      - common_network
+    build:
+        context: ../../docker/irods_catalog_provider
+    depends_on:
+        - irods-catalog
+  irods-client:
+    image: irods-client
+    platform: linux/amd64
+    build:
+        context: ../../docker/irods_client
+    depends_on:
+        - irods-catalog-provider
+    tty: true
+    networks:
+      - common_network
+    environment:
+      - CI=1
