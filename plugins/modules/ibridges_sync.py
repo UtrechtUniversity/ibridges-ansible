@@ -119,8 +119,11 @@ def run_module():
         argument_spec=module_args,
         supports_check_mode=True
     )
+    try:
+        from ibridges import Session, sync_data, IrodsPath
+    except:
+        module.fail_json(msg="Please install the 'ibridges' python package.", changed=False)
 
-    from ibridges import Session
     from pathlib import Path
     if module.params['env']:
         session = Session(irods_env=module.params['env'], password=module.params['password'])
@@ -130,7 +133,6 @@ def run_module():
         module.fail_json(msg='Neither env nor env_file were specified, do not know how to continue.', changed=False)
 
     try:
-        from ibridges import sync_data, IrodsPath
         locations = (module.params['local_path'], IrodsPath(session, module.params['irods_path']))
         if module.params['mode'] == 'up':
             source = locations[0]
