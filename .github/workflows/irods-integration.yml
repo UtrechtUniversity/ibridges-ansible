@@ -18,7 +18,7 @@ jobs:
     env:
       ANSIBLE_FORCE_COLOR: '1'
       ANSIBLE_STDOUT_CALLBACK: yaml
-      REQUIREMENTS_FILE: molecule/default/requirements.txt
+      REQUIREMENTS_FILE: molecule/requirements.txt
     strategy:
       fail-fast: false
       matrix:
