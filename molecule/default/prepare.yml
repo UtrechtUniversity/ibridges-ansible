@@ -18,7 +18,7 @@
               networks:
                 - common_network
               build:
-                  context: ./docker/irods_catalog
+                  context: ../../docker/irods_catalog
               environment:
                   - POSTGRES_PASSWORD=testpassword
             irods-catalog-provider:
@@ -26,7 +26,7 @@
               networks:
                 - common_network
               build:
-                  context: ./docker/irods_catalog_provider
+                  context: ../../docker/irods_catalog_provider
               # network_mode: host
               depends_on:
                   - irods-catalog
@@ -36,7 +36,7 @@
               platform: linux/amd64
               build:
                   context: .
-                  dockerfile: ./docker/irods_client/Dockerfile
+                  dockerfile: ../../docker/irods_client/Dockerfile
               depends_on:
                   - irods-catalog-provider
               tty: true
