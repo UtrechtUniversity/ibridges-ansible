@@ -21,6 +21,10 @@
         group: "{{ _ibridges_group }}"
       with_items: "{{ _ibridges_paths }}"
 
+    - name: Debug
+      debug:
+        msg: "{{ ibridges_env | regex_replace("\\", "") }}"
+
     - name: iBridges sync
       ibridges_sync:
         mode: down
