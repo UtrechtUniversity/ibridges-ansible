@@ -31,7 +31,7 @@
       check_mode: "{{ ibridges_dry_run | default(false) | bool }}"
       with_items: "{{ _ibridges_paths }}"
       environment:
-        PYTHONPATH: "{{ _ibridges_custom_pip_location ~ ':' ~ ansible_env.PYTHONPATH if ansible_env.PYTHONPATH is defined else _ibridges_custom_pip_location }}"
+        PYTHONPATH: "{{ _ibridges_custom_pip_location ~ ':' ~ ansible_env.PYTHONPATH if ansible_env['PYTHONPATH'] is defined else _ibridges_custom_pip_location }}"
   
     - name: Change permissions of downloaded files
       file:
