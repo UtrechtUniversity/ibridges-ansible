@@ -1,3 +1,4 @@
+---
 - name: iBridges Sync ResearchCloud Component
   hosts: localhost
   vars:
@@ -23,12 +24,12 @@
 
     - name: Debug
       debug:
-        msg: '{{ ibridges_env | regex_replace("\\", "") }}'
+        msg: '{{ ibridges_env }}'
 
     - name: iBridges sync
       ibridges_sync:
         mode: down
-        env: '{{ ibridges_env | regex_replace("\\", "") | from_json }}'
+        env: '{{ ibridges_env | regex_replace("\\", "") | from_yaml }}'
         irods_path: "{{ ibridges_irods_path }}"
         local_path: "{{ ibridges_target_path }}/{{ item | basename }}"
         password: "{{ ibridges_password }}"
