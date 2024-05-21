@@ -23,7 +23,7 @@
 
     - name: Debug
       debug:
-        msg: "{{ ibridges_env | regex_replace("\\", "") }}"
+        msg: '{{ ibridges_env | regex_replace("\\", "") }}'
 
     - name: iBridges sync
       ibridges_sync:
