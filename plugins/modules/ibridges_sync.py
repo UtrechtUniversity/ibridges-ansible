@@ -33,7 +33,7 @@ options:
     env:
         description: A dictionary containing all the information about your iRODS environment.
         required: false
-        type: str
+        type: dict
     password:
         description: The password to use to connect to iRODS.
         required: true
@@ -121,7 +121,7 @@ def run_module():
     )
     try:
         from ibridges import Session, sync_data, IrodsPath
-    except:
+    except ImportError:
         module.fail_json(msg="Please install the 'ibridges' python package.", changed=False)
 
     from pathlib import Path

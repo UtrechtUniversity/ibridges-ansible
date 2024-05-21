@@ -7,8 +7,8 @@ on:
       - main
 
 jobs:
-  molecule:
-    name: molecule
+  ansible_test:
+    name: ansible-test
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -29,7 +29,8 @@ jobs:
           - python: 3.12
           - ansible: stable-2.9
     steps:
-
+      - uses: actions/checkout@v4
+      - run: rm -rf docker # prevent dockerfiles from being linted
       - name: Perform sanity testing with ansible-test
         uses: ansible-community/ansible-test-gh-action@release/v1
         with:
