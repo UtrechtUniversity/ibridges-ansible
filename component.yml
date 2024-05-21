@@ -3,8 +3,9 @@
   hosts: localhost
   vars:
     _ibridges_paths: "{{ ibridges_irods_path.split(',') }}"
-    _ibridges_user: "{{ ibridges_user | default(ibridges_target_path | regex_search('^\/home\/(.*)(\/.*)?', '\\1') | default([''], true) | first ) | default('root', true) }}"
-    _ibridges_group: "{{ ibridges_group | default(ibridges_target_path | regex_search('^\/home\/(.*)(\/.*)?', '\\1') | default([''], true) | first ) | default('root', true) }}"
+    _ibridges_user_from_path: "{{ ibridges_target_path | regex_search('^\/home\/(\w+)(\/.*)?', '\\1') | default([''], true) | first }}"
+    _ibridges_user: "{{ ibridges_user | default(_ibridges_user_from_path, true) | default('root', true) }}"
+    _ibridges_group: "{{ ibridges_group | default(_ibridges_user, true) | default('root', true) }}"
     _ibridges_custom_pip_location: /usr/local/pip
 
   tasks:
@@ -21,10 +22,6 @@
         owner: "{{ _ibridges_user }}"
         group: "{{ _ibridges_group }}"
       with_items: "{{ _ibridges_paths }}"
-
-    - name: Debug
-      debug:
-        msg: '{{ ibridges_env }}'
 
     - name: iBridges sync
       ibridges_sync:
