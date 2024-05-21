@@ -1,12 +1,13 @@
 - name: iBridges Sync ResearchCloud Component
   hosts: localhost
   vars:
-    _ibridges_user: "{{ ibridges_user | default(ibridges_target_path | regex_search('^\/home\/(.*)\/.*', '\\1') | default([], true) | first ) }}"
-    _ibridges_group: "{{ ibridges_group | default(ibridges_target_path | regex_search('^\/home\/(.*)\/.*', '\\1') | default([], true) | first ) }}"
+    _ibridges_paths: "{{ ibridges_irods_path.split(',') }}"
+    _ibridges_user: "{{ ibridges_user | default(ibridges_target_path | regex_search('^\/home\/(.*)(\/.*)?', '\\1') | default([''], true) | first ) | default('root', true) }}"
+    _ibridges_group: "{{ ibridges_group | default(ibridges_target_path | regex_search('^\/home\/(.*)(\/.*)?', '\\1') | default([''], true) | first ) | default('root', true) }}"
     _ibridges_custom_pip_location: /usr/local/pip
 
   tasks:
-    - name: Install ibridges
+    - name: Install iBridges
       pip:
         name: ibridges
         extra_args: "--target {{ _ibridges_custom_pip_location }}"
@@ -16,9 +17,9 @@
         path: "{{ ibridges_target_path }}/{{ item | basename }}"
         state: directory
         mode: "0750"
-        owner: "{{ _ibridges_user | default('root', true) }}"
-        group: "{{ _ibridges_group | default('root', true) }}"
-      with_items: "{{ ibridges_irods_path.split(',') }}"
+        owner: "{{ _ibridges_user }}"
+        group: "{{ _ibridges_group }}"
+      with_items: "{{ _ibridges_paths }}"
 
     - name: iBridges sync
       ibridges_sync:
@@ -28,9 +29,9 @@
         local_path: "{{ ibridges_target_path }}/{{ item | basename }}"
         password: "{{ ibridges_password }}"
       check_mode: "{{ ibridges_dry_run | default(false) | bool }}"
-      with_items: "{{ ibridges_irods_path.split(',') }}"
+      with_items: "{{ _ibridges_paths }}"
       environment:
-        PYTHON_PATH: "{{ _ibridges_custom_pip_location }}:{{ ansible_env.PYTHONPATH }}"
+        PYTHONPATH: "{{ _ibridges_custom_pip_location ~ ':' ~ ansible_env.PYTHONPATH if ansible_env.PYTHONPATH is defined else _ibridges_custom_pip_location }}"
   
     - name: Change permissions of downloaded files
       file:
@@ -38,6 +39,6 @@
         state: directory
         recurse: true
         mode: "0750"
-        owner: "{{ _ibridges_user | default('root', true) }}"
-        group: "{{ _ibridges_group | default('root', true) }}"
-      with_items: "{{ ibridges_irods_path.split(',') }}"
+        owner: "{{ _ibridges_user }}"
+        group: "{{ _ibridges_group }}"
+      with_items: "{{ _ibridges_paths }}"
