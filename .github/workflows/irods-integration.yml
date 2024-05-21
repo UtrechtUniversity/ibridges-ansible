@@ -2,8 +2,6 @@ name: Run integration tests against iRODS
 
 on:
   push:
-    branches:
-      - develop
   pull_request:
 
 jobs:
