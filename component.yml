@@ -1,9 +1,11 @@
+---
 - name: iBridges Sync ResearchCloud Component
   hosts: localhost
   vars:
     _ibridges_paths: "{{ ibridges_irods_path.split(',') }}"
-    _ibridges_user: "{{ ibridges_user | default(ibridges_target_path | regex_search('^\/home\/(.*)(\/.*)?', '\\1') | default([''], true) | first ) | default('root', true) }}"
-    _ibridges_group: "{{ ibridges_group | default(ibridges_target_path | regex_search('^\/home\/(.*)(\/.*)?', '\\1') | default([''], true) | first ) | default('root', true) }}"
+    _ibridges_user_from_path: "{{ ibridges_target_path | regex_search('^\/home\/(\\w+)(\/\\w*)?', '\\1') | default([''], true) | first }}"
+    _ibridges_user: "{{ ibridges_user | default(_ibridges_user_from_path, true) | default('root', true) }}"
+    _ibridges_group: "{{ ibridges_group | default(_ibridges_user, true) | default('root', true) }}"
     _ibridges_custom_pip_location: /usr/local/pip
 
   tasks:
@@ -24,7 +26,7 @@
     - name: iBridges sync
       ibridges_sync:
         mode: down
-        env: '{{ ibridges_env | regex_replace("\\", "") | from_json }}'
+        env: '{{ ibridges_env | regex_replace("\\", "") | from_yaml }}'
         irods_path: "{{ ibridges_irods_path }}"
         local_path: "{{ ibridges_target_path }}/{{ item | basename }}"
         password: "{{ ibridges_password }}"
