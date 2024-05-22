@@ -23,3 +23,22 @@
         path: /home/rods/testfiles
         state: directory
 
+    - name: Upload testfiles
+      ibridges_upload:
+        env:
+          irods_host: irods-catalog-provider # container name
+          irods_port: 1247
+          irods_user_name: rods
+          irods_default_resource: "demoResc"
+          irods_home: /tempZone/home/rods
+          irods_zone_name: tempZone
+        irods_path: "~/testfiles"
+        local_path: "/tmp/test/testfiles"
+        password: rods
+      retries: 3
+      delay: 5 # retry because irods server might not be available yet
+
+    - name: Add new testfile for sync test
+      ansible.builtin.copy:
+        dest: /tmp/test/testfiles/penguin.txt
+        content: sweet animal
