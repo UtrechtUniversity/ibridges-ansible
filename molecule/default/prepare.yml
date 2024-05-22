@@ -15,5 +15,11 @@
   
     - name: Create testfiles
       ansible.builtin.copy:
-        dest: /testfiles
+        dest: /tmp/test/testfiles
         src: ./
+
+    - name: Create download test destination
+      ansible.builtin.file:
+        path: /home/rods/testfiles
+        state: directory
+

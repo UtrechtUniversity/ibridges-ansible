@@ -3,17 +3,32 @@
   hosts: all
   gather_facts: false
   tasks:
-    - name: iBridges sync
+    - name: iBridges sync up
       ibridges_sync:
         mode: up
-        env: # see <repo_root>/docker/environments/plain-irods/irods_environment_testuser.json
+        env:
           irods_host: irods-catalog-provider # container name
           irods_port: 1247
           irods_user_name: rods
           irods_default_resource: "demoResc"
-          irods_home: /tempZone/home/testuser
+          irods_home: /tempZone/home/rods
           irods_zone_name: tempZone
         irods_path: "~/"
-        local_path: "/testfiles"
+        local_path: "/tmp/test/"
+        password: rods
+      check_mode: false
+
+    - name: iBridges sync down
+      ibridges_sync:
+        mode: down
+        env:
+          irods_host: irods-catalog-provider # container name
+          irods_port: 1247
+          irods_user_name: rods
+          irods_default_resource: "demoResc"
+          irods_home: /tempZone/home/rods
+          irods_zone_name: tempZone
+        irods_path: "~/testfiles"
+        local_path: "/home/rods/testfiles"
         password: rods
       check_mode: false
