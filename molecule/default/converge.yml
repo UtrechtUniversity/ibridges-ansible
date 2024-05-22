@@ -13,8 +13,8 @@
           irods_default_resource: "demoResc"
           irods_home: /tempZone/home/rods
           irods_zone_name: tempZone
-        irods_path: "~/"
-        local_path: "/tmp/test/"
+        irods_path: "~/testfiles"
+        local_path: "/tmp/test/testfiles"
         password: rods
       check_mode: false
 
