@@ -1,6 +1,6 @@
-ibridges
+ibridges~=0.1
 molecule~=6.0
 molecule-plugins
 jmespath~=1.0
-requests~=2.31.0
+requests~=2.31.0 # https://github.com/ansible-community/molecule-plugins/issues/256
 docker~=6.0
