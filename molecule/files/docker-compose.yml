@@ -20,15 +20,3 @@ services:
         context: ../../docker/irods_catalog_provider
     depends_on:
         - irods-catalog
-  irods-client:
-    image: irods-client
-    platform: linux/amd64
-    build:
-        context: ../../docker/irods_client
-    depends_on:
-        - irods-catalog-provider
-    tty: true
-    networks:
-      - common_network
-    environment:
-      - CI=1
