@@ -29,11 +29,18 @@ jobs:
           - python: 3.12
           - ansible: stable-2.9
     steps:
-      - uses: actions/checkout@v4
-      - run: rm -rf docker # prevent dockerfiles from being linted
+
       - name: Perform sanity testing with ansible-test
         uses: ansible-community/ansible-test-gh-action@release/v1
         with:
           ansible-core-version: '${{ matrix.ansible }}'
           testing-type: sanity
           target-python-version: '${{ matrix.python }}'
+          pre-test-cmd: rm -rf docker
+      - name: Perform unit testing with ansible-test
+        uses: ansible-community/ansible-test-gh-action@release/v1
+        with:
+          ansible-core-version: '${{ matrix.ansible }}'
+          testing-type: unit
+          target-python-version: '${{ matrix.python }}'
+
