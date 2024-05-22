@@ -1,0 +1,13 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Get down-synced file
+      ansible.builtin.command: cat /home/rods/testfiles/penguin.txt
+      register: cat_result
+
+    - name: Assert file exists
+      ansible.builtin.assert:
+        that:
+          - '"sweet animal" in cat_result.stdout'
