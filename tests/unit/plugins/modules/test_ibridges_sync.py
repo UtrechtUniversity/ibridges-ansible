@@ -22,6 +22,22 @@ class MockedSession():
         self.irods_session = 'mocked'
 
 
+class MockedPath():
+    def __init__(self, path='foo', n_files=0, n_folders=0):
+        self.path = path
+        self.n_files = n_files
+        self.n_folders = n_folders
+
+    def path(self):
+        return self.path
+
+    def n_files(self):
+        return self.n_files
+
+    def n_folders(self):
+        return self.n_folders
+
+
 def set_module_args(args):
     """prepare arguments so that they will be picked up during module creation"""
     if not args:
@@ -86,8 +102,8 @@ class TestiBridgesSync(unittest.TestCase):
     def test_sync_down(self, mocked_session, mocked_sync):
         mocked_session.return_value = MockedSession()
         mocked_sync.return_value = {
-            'changed_files': ['foo'],
-            'changed_folders': ['bar']
+            'changed_files': [MockedPath(path='foo')],
+            'changed_folders': [MockedPath(path='bar')]
         }
 
         args = setup_sync()
@@ -100,8 +116,10 @@ class TestiBridgesSync(unittest.TestCase):
             'msg': '',
             'stdout': '',
             'stdout_lines': [''],
-            'changed_files': ['foo'],
-            'changed_folders': ['bar']
+            'stderr': '',
+            'stderr_lines': [''],
+            'changed_files': [{'path': 'foo'}],
+            'changed_folders': [{'n_files': 0, 'n_folders': 0, 'path': 'bar'}]
         }
         self.assertEqual(context.exception.args[0], expectation)
 
@@ -138,6 +156,8 @@ class TestiBridgesSync(unittest.TestCase):
             'msg': '',
             'stdout': '',
             'stdout_lines': [''],
+            'stderr': '',
+            'stderr_lines': [''],
             'changed_files': [],
             'changed_folders': []
         }
@@ -154,8 +174,8 @@ class TestiBridgesSync(unittest.TestCase):
     def test_sync_dry_run(self, mocked_session, mocked_sync):
         mocked_session.return_value = MockedSession()
         mocked_sync.return_value = {
-            'changed_files': ['foo'],
-            'changed_folders': ['bar']
+            'changed_files': [MockedPath(path='foo')],
+            'changed_folders': [MockedPath(path='bar')]
         }
 
         args = setup_sync(check_mode=True)
@@ -168,7 +188,9 @@ class TestiBridgesSync(unittest.TestCase):
             'msg': 'Executed iBridges dry run.',
             'stdout': '',
             'stdout_lines': [''],
-            'changed_files': ['foo'],
-            'changed_folders': ['bar']
+            'stderr': '',
+            'stderr_lines': [''],
+            'changed_files': [{'path': 'foo'}],
+            'changed_folders': [{'n_files': 0, 'n_folders': 0, 'path': 'bar'}]
         }
         self.assertEqual(context.exception.args[0], expectation)
