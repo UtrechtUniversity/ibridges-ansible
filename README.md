@@ -1,3 +1,6 @@
+[![Run ansible-test](https://github.com/UtrechtUniversity/ibridges-ansible/actions/workflows/ansible-test.yml/badge.svg)](https://github.com/UtrechtUniversity/ibridges-ansible/actions/workflows/ansible-test.yml)
+[![Run integration tests against iRODS](https://github.com/UtrechtUniversity/ibridges-ansible/actions/workflows/irods-integration.yml/badge.svg)](https://github.com/UtrechtUniversity/ibridges-ansible/actions/workflows/irods-integration.yml)
+
 # Ansible modules for syncing data with iRODS
 
 This collection contains Ansible modules facilitating data transfer between an Ansible target machine and an [iRODS](https://irods.org) server.
