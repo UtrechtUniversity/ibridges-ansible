@@ -26,7 +26,7 @@
     - name: iBridges sync
       ibridges_sync:
         mode: down
-        env: '{{ ibridges_env | regex_replace("\\", "") | from_yaml }}'
+        env: '{{ ibridges_env | regex_replace("\\", "") | from_yaml }}' # this is a bit hackish: the component parameter expects JSON, ResearchCloud will then strip the double-quotes from this parameter, turning it into valid YAML...
         irods_path: "{{ ibridges_irods_path }}"
         local_path: "{{ ibridges_target_path }}/{{ item | basename }}"
         password: "{{ ibridges_password }}"
