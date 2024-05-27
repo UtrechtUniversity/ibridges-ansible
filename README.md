@@ -33,7 +33,36 @@ First make sure that the `ibridges` Python library is available on the Ansible t
     name: "ibridges"
 ```
 
-Then simply call the `ibridges_sync` module as follows:
+### A note on global pip installs
+
+The above snippet installs `ibridges` as a global pip package. Although this will likely work just fine, it is not considered best practice
+as updating the global pip dependencies may cause system packages that depend on them to fail. If this is a concern, you can instead install
+`ibridges` to a custom location:
+
+```yaml
+- name: Install packages
+  pip:
+    name: "ibridges"
+   extra_args: "--target /my/custom/location"
+```
+
+If you do this, subsequent invocations of the modules provided by this collection need to point to the location where iBridges was installed
+by adding the right `PYTHONPATH` to the module's environment:
+
+```
+- name: iBridges sync down
+  ibridges_sync:
+    mode: down
+    ... # etc.
+  environment:
+    PYTHONPATH: /my/custom/location
+```
+
+## Module ibridges_sync
+
+The main module provided by this collection is `ibridges_sync`, which allows you to sync a local directory with a directory on the iRODS server.
+
+Note: sync will only work if the folder already exists on iRODS. If you want to upload a new directory, use the `ibrdiges_upload` module.
 
 ```yaml
     - name: iBridges sync up
@@ -61,7 +90,9 @@ Then simply call the `ibridges_sync` module as follows:
       check_mode: false # check_mode: true will perform a dry run, listing paths that would be changed
 ```
 
-There is also an `ibridges_upload` module for uploading separate files or folders (sync will only work if the folder already exists on iRODS):
+## Module ibridges_upload
+
+There is also an `ibridges_upload` module for uploading separate files or folders:
 
 ```yaml
     - name: Upload testfiles
@@ -77,3 +108,4 @@ There is also an `ibridges_upload` module for uploading separate files or folder
         local_path: "/tmp/test/testfiles"
         password: rodspass
 ```
+
