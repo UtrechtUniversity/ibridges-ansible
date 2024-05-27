@@ -3,4 +3,4 @@ molecule~=24.2
 molecule-plugins
 jmespath~=1.0
 requests~=2.31.0 # https://github.com/ansible-community/molecule-plugins/issues/256
-docker~=7.0
+docker~=7.1
