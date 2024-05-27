@@ -11,7 +11,7 @@
   tasks:
     - name: Install iBridges
       pip:
-        name: ibridges
+        name: ibridges==0.1
         extra_args: "--target {{ _ibridges_custom_pip_location }}"
 
     - name: Create target directory if it does not exist
