@@ -29,6 +29,7 @@ jobs:
           - 3.8
         ansible:
           - 2.9
+          - 8.7.0
           - 9.6.0
         exclude:
           - ansible: 2.9
@@ -39,6 +40,14 @@ jobs:
             python: 3.9
           - ansible: 9.6.0
             python: 3.8
+          - ansible: 9.6.0
+            python: 3.9
+          - ansible: 8.7.0
+            python: 3.8
+          - ansible: 8.7.0
+            python: 3.11
+          - ansible: 8.7.0
+            python: 3.12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
