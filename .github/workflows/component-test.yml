@@ -1,8 +1,14 @@
 ---
-name: Run integration tests against iRODS
+name: Run component tests against iRODS
 on:
   pull_request:
+    paths:
+      - 'component.yml'
+      - 'molecule/component/**'
   push:
+    paths:
+      - 'component.yml'
+      - 'molecule/component/**'
     branches:
       - main
 
@@ -19,27 +25,14 @@ jobs:
       ANSIBLE_FORCE_COLOR: '1'
       ANSIBLE_STDOUT_CALLBACK: yaml
       REQUIREMENTS_FILE: molecule/requirements.txt
-    strategy:
-      fail-fast: false
-      matrix:
-        python:
-          - '3.12'
-          - '3.10'
-        ansible:
-          - 2.9
-          - 9.6.0
-        exclude:
-          - ansible: 2.9
-            python: '3.12'
-          - ansible: 9.6.0
-            python: '3.10'
+      MOLECULE_CONFIG: molecule/ext/molecule.yml
+      DRIVER: docker
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python }}
-      - run: pip install -U ansible==${{ matrix.ansible }}
+          python-version: '3.11'
       - run: pip install -r ${{ env.REQUIREMENTS_FILE }}
       - run: ansible-galaxy install -r requirements.yml
       - name: Run molecule tests
-        run: molecule -vvv test
+        run: molecule -vvv -c ${{ env.MOLECULE_CONFIG }} test -s component
