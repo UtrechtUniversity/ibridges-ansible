@@ -1,0 +1,29 @@
+---
+platforms:
+  - name: workspace-src-ubuntu_focal
+    image: ghcr.io/utrechtuniversity/src-test-workspace:ubuntu_focal
+    pre_build_image: true
+    networks:
+      - name: irods_test_network
+    registry:
+      url: $DOCKER_REGISTRY
+      credentials:
+        username: $DOCKER_USER
+        password: $DOCKER_PW
+provisioner:
+  name: ansible
+  playbooks:
+    converge: ../ext/converge.yml
+    prepare: ../ext/prepare.yml
+    cleanup: ../default/cleanup.yml
+  env:
+    PLAYBOOK_DIR: ../../../
+    extra_prepare_tasks: ../files/_inc_prepare.yml
+    components:
+      - name: ibridges_sync
+        path: component.yml
+        parameters:
+          ibridges_password: rods
+          ibridges_env: '{ irods_host: irods-catalog-provider,irods_port: 1247, irods_user_name: rods, irods_default_resource: demoResc, irods_home: /tempZone/home/rods, irods_zone_name: tempZone }'
+          ibridges_irods_path: "~/testfiles"
+          ibridges_target_path: "/home/testuser/"
