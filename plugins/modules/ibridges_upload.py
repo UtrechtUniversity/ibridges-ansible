@@ -102,7 +102,7 @@ def run_module():
     try:
         from ibridges import Session, upload, IrodsPath
     except ImportError:
-        module.fail_json(msg="Please install the 'ibridges' python package.", changed=False)
+        module.fail_json(msg="Failed to load iBridges. Please ensure the 'ibridges' python package is installed.", changed=False)
 
     from pathlib import Path
     if module.params['env']:
