@@ -120,9 +120,9 @@ def run_module():
         supports_check_mode=True
     )
     try:
-        from ibridges import Session, sync_data, IrodsPath
+        from ibridges import Session, sync, IrodsPath
     except ImportError:
-        module.fail_json(msg="Please install the 'ibridges' python package.", changed=False)
+        module.fail_json(msg="Failed to load iBridges. Please ensure the 'ibridges' python package is installed.", changed=False)
 
     from pathlib import Path
     if module.params['env']:
@@ -137,9 +137,13 @@ def run_module():
         if module.params['mode'] == 'up':
             source = locations[0]
             target = locations[1]
+            changed_paths_key = 'upload'
+            new_folders_key = 'create_collection'
         elif module.params['mode'] == 'down':
             source = locations[1]
             target = locations[0]
+            changed_paths_key = 'download'
+            new_folders_key = 'create_dir'
         else:
             module.fail_json(msg='Unsupported sync mode "{mode}", choose either "up" or "down".'.format(mode=module.params['mode']), changed=False)
 
@@ -150,7 +154,7 @@ def run_module():
 
         with redirect_stdout(ibridges_stdout):
             with redirect_stderr(ibridges_stderr):
-                sync_result = sync_data(
+                sync_result = sync(
                     session=session,
                     source=source,
                     target=target,
@@ -165,16 +169,10 @@ def run_module():
         result['msg'] = 'Executed iBridges dry run.'
         result['changed'] = False
     else:
-        result['changed'] = False if len(sync_result['changed_files']) + len(sync_result['changed_folders']) == 0 else True
+        result['changed'] = False if len(sync_result[changed_paths_key]) + len(sync_result[new_folders_key]) == 0 else True
 
-    result['changed_files'] = [{'path': file.path} for file in sync_result['changed_files']]
-    result['changed_folders'] = [
-        {
-            'path': folder.path,
-            'n_files': folder.n_files,
-            'n_folders': folder.n_folders
-        } for folder in sync_result['changed_folders']
-    ]
+    result['changed_files'] = [str(path_pair[1]) for path_pair in sync_result[changed_paths_key]]
+    result['new_folders'] = list(sync_result[new_folders_key])
 
     result['stdout'] = ibridges_stdout.getvalue()
     result['stdout_lines'] = result['stdout'].split("\n")

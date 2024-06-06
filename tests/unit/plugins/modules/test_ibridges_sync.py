@@ -6,36 +6,58 @@ from unittest.mock import patch
 from ansible.module_utils import basic
 from ansible.module_utils.common.text.converters import to_bytes
 from plugins.modules import ibridges_sync
+from pathlib import Path
 
 DEFAULT_ARGS = {
     'irods_path': '/test',
     'local_path': '/tmp/',
     'password': 'test',
-}  # This includes only required arguments
+}  # This includes only required arguments for the module
 
 
 class MockedSession():
     def __init__(self, **kwargs):
-        self.irods_env = 'test'
+        self.irods_env = {}
         self.irods_home = '/test'
         self.password = 'password'
         self.irods_session = 'mocked'
+        self.home = self.irods_home
+        self.zone = 'testzone'
 
 
-class MockedPath():
-    def __init__(self, path='foo', n_files=0, n_folders=0):
-        self.path = path
-        self.n_files = n_files
-        self.n_folders = n_folders
+# Mock the return value of ibridges.sync
+def mock_sync_result(**kwargs):
+    defaults = {
+        'create_dir': set(),
+        'create_collection': set(),
+        'upload': [],
+        'download': [],
+        'resc_name': '',
+        'options': None
+    }
+    return {**defaults, **kwargs}
 
-    def path(self):
-        return self.path
 
-    def n_files(self):
-        return self.n_files
+def mock_module_result(**kwargs):
+    defaults = {
+        'changed': False,
+        'msg': '',
+        'stdout': '',
+        'stdout_lines': [''],
+        'stderr': '',
+        'stderr_lines': [''],
+        'changed_files': [],
+        'new_folders': []
+    }
+    return {**defaults, **kwargs}
 
-    def n_folders(self):
-        return self.n_folders
+
+def mock_result_paths():
+    return {
+        'irods_path': '/irods_zone/home/foo',
+        'local_path': 'foo',
+        'dir': 'bar'
+    }
 
 
 def set_module_args(args):
@@ -97,100 +119,87 @@ class TestiBridgesSync(unittest.TestCase):
                 set_module_args(args)
                 ibridges_sync.main()
 
-    @patch('ibridges.sync_data')
+    @patch('ibridges.sync')
     @patch('ibridges.Session')
     def test_sync_down(self, mocked_session, mocked_sync):
         mocked_session.return_value = MockedSession()
-        mocked_sync.return_value = {
-            'changed_files': [MockedPath(path='foo')],
-            'changed_folders': [MockedPath(path='bar')]
-        }
+        mock_paths = mock_result_paths()
+        mocked_sync.return_value = mock_sync_result(
+            download=[(Path(mock_paths['irods_path']), mock_paths['local_path'])],
+            create_dir=[mock_paths['dir']]
+        )
 
         args = setup_sync()
 
         with self.assertRaises(AnsibleExitJson) as context:
             ibridges_sync.main()
 
-        expectation = {
-            'changed': True,
-            'msg': '',
-            'stdout': '',
-            'stdout_lines': [''],
-            'stderr': '',
-            'stderr_lines': [''],
-            'changed_files': [{'path': 'foo'}],
-            'changed_folders': [{'n_files': 0, 'n_folders': 0, 'path': 'bar'}]
-        }
+        expectation = mock_module_result(
+            changed_files=[mock_paths['local_path']],
+            new_folders=[mock_paths['dir']],
+            changed=True
+        )
         self.assertEqual(context.exception.args[0], expectation)
 
         mocked_sync.assert_called()
         call = mocked_sync.mock_calls[0]
 
-        self.assertEqual(call.kwargs['source'].absolute_path(), args['irods_path'])
+        self.assertEqual(str(call.kwargs['source']), args['irods_path'])
+        self.assertEqual(str(call.kwargs['target']), args['local_path'])
 
-        expectations = {
+        expected_invoked_parameters = {
             'target': args['local_path'],
             'dry_run': False,
             'max_level': None,
             'copy_empty_folders': True
         }
-        for expectation in expectations.items():
+        for expectation in expected_invoked_parameters.items():
             self.assertEqual(call.kwargs[expectation[0]], expectation[1])
 
-    @patch('ibridges.sync_data')
+    @patch('ibridges.sync')
     @patch('ibridges.Session')
     def test_sync_up(self, mocked_session, mocked_sync):
         mocked_session.return_value = MockedSession()
-        mocked_sync.return_value = {
-            'changed_files': [],
-            'changed_folders': []
-        }
-
+        mock_paths = mock_result_paths()
+        mocked_sync.return_value = mock_sync_result(
+            upload=[(Path(mock_paths['local_path']), Path(mock_paths['irods_path']))],
+            create_collection=[mock_paths['dir']]
+        )
         args = setup_sync(mode='up')
 
         with self.assertRaises(AnsibleExitJson) as context:
             ibridges_sync.main()
 
-        expectation = {
-            'changed': False,
-            'msg': '',
-            'stdout': '',
-            'stdout_lines': [''],
-            'stderr': '',
-            'stderr_lines': [''],
-            'changed_files': [],
-            'changed_folders': []
-        }
+        expectation = mock_module_result(
+            changed_files=[mock_paths['irods_path']],
+            new_folders=[mock_paths['dir']],
+            changed=True
+        )
         self.assertEqual(context.exception.args[0], expectation)
 
         mocked_sync.assert_called()
         call = mocked_sync.mock_calls[0]
 
-        self.assertEqual(call.kwargs['source'], args['local_path'])
-        self.assertEqual(call.kwargs['target'].absolute_path(), args['irods_path'])
+        self.assertEqual(str(call.kwargs['source']), args['local_path'])
+        self.assertEqual(str(call.kwargs['target']), args['irods_path'])
 
-    @patch('ibridges.sync_data')
+    @patch('ibridges.sync')
     @patch('ibridges.Session')
     def test_sync_dry_run(self, mocked_session, mocked_sync):
         mocked_session.return_value = MockedSession()
-        mocked_sync.return_value = {
-            'changed_files': [MockedPath(path='foo')],
-            'changed_folders': [MockedPath(path='bar')]
-        }
+        mock_paths = mock_result_paths()
+        mocked_sync.return_value = mock_sync_result(
+            download=[(Path(mock_paths['irods_path']), mock_paths['local_path'])],
+            create_dir=[mock_paths['dir']]
+        )
 
         args = setup_sync(check_mode=True)
 
         with self.assertRaises(AnsibleExitJson) as context:
             ibridges_sync.main()
-
-        expectation = {
-            'changed': False,
-            'msg': 'Executed iBridges dry run.',
-            'stdout': '',
-            'stdout_lines': [''],
-            'stderr': '',
-            'stderr_lines': [''],
-            'changed_files': [{'path': 'foo'}],
-            'changed_folders': [{'n_files': 0, 'n_folders': 0, 'path': 'bar'}]
-        }
+        expectation = mock_module_result(
+            changed_files=[mock_paths['local_path']],
+            new_folders=[mock_paths['dir']],
+            msg='Executed iBridges dry run.'
+        )
         self.assertEqual(context.exception.args[0], expectation)
