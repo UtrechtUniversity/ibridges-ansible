@@ -5,3 +5,8 @@
   tasks:
     - name: Include tasks
       ansible.builtin.include_tasks: ../files/_inc_prepare.yml
+
+    - name: Create test directory for sync up test
+      ansible.builtin.file:
+        path: /tmp/test/testfiles/newfolder
+        state: directory
