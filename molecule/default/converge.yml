@@ -3,32 +3,5 @@
   hosts: all
   gather_facts: false
   tasks:
-    - name: iBridges sync up
-      ibridges_sync:
-        mode: up
-        env:
-          irods_host: irods-catalog-provider # container name
-          irods_port: 1247
-          irods_user_name: rods
-          irods_default_resource: "demoResc"
-          irods_home: /tempZone/home/rods
-          irods_zone_name: tempZone
-        irods_path: "~/testfiles"
-        local_path: "/tmp/test/testfiles"
-        password: rods
-      check_mode: false
-
-    - name: iBridges sync down
-      ibridges_sync:
-        mode: down
-        env:
-          irods_host: irods-catalog-provider # container name
-          irods_port: 1247
-          irods_user_name: rods
-          irods_default_resource: "demoResc"
-          irods_home: /tempZone/home/rods
-          irods_zone_name: tempZone
-        irods_path: "~/testfiles"
-        local_path: "/home/rods/testfiles"
-        password: rods
-      check_mode: false
+    - name: Skip converge and move to verify
+      ansible.builtin.meta: end_play

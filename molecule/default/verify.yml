@@ -2,9 +2,66 @@
 - name: Verify
   hosts: all
   gather_facts: false
+  vars:
+    sync_down_expected_changed_files:
+      - /home/synctest/testfiles/_inc_prepare.yml
+      - /home/synctest/testfiles/docker-compose.yml
+      - /home/synctest/testfiles/penguin.txt
   tasks:
+    - name: iBridges sync up
+      ibridges_sync:
+        mode: up
+        env:
+          irods_host: irods-catalog-provider # container name
+          irods_port: 1247
+          irods_user_name: rods
+          irods_default_resource: "demoResc"
+          irods_home: /tempZone/home/rods
+          irods_zone_name: tempZone
+        irods_path: "~/testfiles/"
+        local_path: "/tmp/test/testfiles/"
+        password: rods
+      check_mode: false
+      register: sync_up
+
+    - name: iBridges sync down
+      ibridges_sync:
+        mode: down
+        env:
+          irods_host: irods-catalog-provider # container name
+          irods_port: 1247
+          irods_user_name: rods
+          irods_default_resource: "demoResc"
+          irods_home: /tempZone/home/rods
+          irods_zone_name: tempZone
+        irods_path: "~/testfiles/"
+        local_path: "/home/synctest/testfiles/"
+        password: rods
+      check_mode: false
+      register: sync_down
+
+    - name: Debug sync up results
+      ansible.builtin.debug:
+        var: sync_up
+
+    - name: Debug sync down results
+      ansible.builtin.debug:
+        var: sync_down
+
+    - name: Assert sync results as expected
+      ansible.builtin.assert:
+        that:
+          - sync_up.msg == ''
+          - (sync_up.new_folders | length == 1) and sync_up.new_folders[0] is regex('.*/testfiles/newfolder')
+          - (sync_up.changed_files | length == 1) and sync_up.changed_files[0] is regex('.*/testfiles/penguin.txt')
+          - sync_up.changed
+          - sync_down.msg == ''
+          - (sync_down.new_folders | length == 1) and sync_up.new_folders[0] is regex('.*/testfiles/newfolder')
+          - (sync_down.changed_files | length) == (sync_down_expected_changed_files | length)
+          - sync_down_expected_changed_files | difference(sync_down.changed_files) | length == 0
+
     - name: Get down-synced file
-      ansible.builtin.command: cat /home/rods/testfiles/penguin.txt
+      ansible.builtin.command: cat /home/synctest/testfiles/penguin.txt
       register: cat_result
 
     - name: Assert file exists

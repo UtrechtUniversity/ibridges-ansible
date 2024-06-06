@@ -9,3 +9,14 @@ platforms:
     pre_build_image: true
     networks:
       - name: irods_test_network
+scenario:
+  test_sequence:
+    - dependency
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - verify
+    - cleanup
+    - destroy

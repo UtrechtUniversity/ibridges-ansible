@@ -16,7 +16,7 @@
 
 - name: Create download test destination
   ansible.builtin.file:
-    path: /home/rods/testfiles
+    path: /home/synctest/testfiles
     state: directory
 
 - name: Upload testfiles
@@ -28,8 +28,8 @@
       irods_default_resource: "demoResc"
       irods_home: /tempZone/home/rods
       irods_zone_name: tempZone
-    irods_path: "~/testfiles"
-    local_path: "/tmp/test/testfiles"
+    irods_path: "~/"
+    local_path: "/tmp/test/testfiles/"
     password: rods
   retries: 10
   delay: 5 # retry because irods server might not be available yet
