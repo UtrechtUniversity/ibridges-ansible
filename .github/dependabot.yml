@@ -9,3 +9,7 @@ updates:
     directory: "/molecule" # Location of package manifests
     schedule:
       interval: "weekly"
+  - package-ecosystem: "pip" # See documentation for possible values
+    directory: "/tests/unit" # Location of package manifests
+    schedule:
+      interval: "weekly"
