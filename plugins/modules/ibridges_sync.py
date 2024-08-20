@@ -137,13 +137,13 @@ def run_module():
         if module.params['mode'] == 'up':
             source = locations[0]
             target = locations[1]
-            changed_paths_key = 'upload'
-            new_folders_key = 'create_collection'
+            changed_paths_func = 'upload'
+            new_folders_func = 'create_collection'
         elif module.params['mode'] == 'down':
             source = locations[1]
             target = locations[0]
-            changed_paths_key = 'download'
-            new_folders_key = 'create_dir'
+            changed_paths_func = 'download'
+            new_folders_func = 'create_dir'
         else:
             module.fail_json(msg='Unsupported sync mode "{mode}", choose either "up" or "down".'.format(mode=module.params['mode']), changed=False)
 
@@ -165,14 +165,17 @@ def run_module():
     except Exception as e:
         module.fail_json(msg='Encountered an error when executing iBridges sync: {}'.format(repr(e)), changed=False)
 
+    changed_paths = getattr(sync_result, changed_paths_func)
+    new_folders = getattr(sync_result, new_folders_func)
+
     if module.check_mode:
         result['msg'] = 'Executed iBridges dry run.'
         result['changed'] = False
     else:
-        result['changed'] = False if len(sync_result[changed_paths_key]) + len(sync_result[new_folders_key]) == 0 else True
+        result['changed'] = False if len(changed_paths) + len(new_folders) == 0 else True
 
-    result['changed_files'] = [str(path_pair[1]) for path_pair in sync_result[changed_paths_key]]
-    result['new_folders'] = list(sync_result[new_folders_key])
+    result['changed_files'] = [str(path_pair[1]) for path_pair in changed_paths]
+    result['new_folders'] = list(new_folders)
 
     result['stdout'] = ibridges_stdout.getvalue()
     result['stdout_lines'] = result['stdout'].split("\n")

@@ -8,6 +8,8 @@ from ansible.module_utils.common.text.converters import to_bytes
 from plugins.modules import ibridges_sync
 from pathlib import Path
 
+from ibridges.executor import Operations
+
 DEFAULT_ARGS = {
     'irods_path': '/test',
     'local_path': '/tmp/',
@@ -35,7 +37,11 @@ def mock_sync_result(**kwargs):
         'resc_name': '',
         'options': None
     }
-    return {**defaults, **kwargs}
+    options = {**defaults, **kwargs}
+    ops = Operations(resc_name=options['resc_name'])
+    for k, v in options.items():
+        setattr(ops, k, v)
+    return ops
 
 
 def mock_module_result(**kwargs):
