@@ -3,4 +3,4 @@ molecule~=24.8
 molecule-plugins~=23.5
 jmespath~=1.0
 docker~=7.1
-podman~=5.0
+podman~=5.2
