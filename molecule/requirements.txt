@@ -1,4 +1,4 @@
-ibridges~=1.1
+ibridges~=1.2
 molecule
 molecule-plugins
 jmespath~=1.0
