@@ -27,11 +27,11 @@ jobs:
           - '3.10'
         ansible:
           - 2.9
-          - 9.6.0
+          - 9.6.1
         exclude:
           - ansible: 2.9
             python: '3.12'
-          - ansible: 9.6.0
+          - ansible: 9.6.1
             python: '3.10'
     steps:
       - uses: actions/checkout@v4
