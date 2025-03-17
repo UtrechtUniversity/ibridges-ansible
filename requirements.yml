@@ -2,3 +2,5 @@
 collections:
   - name: community.docker
   - name: community.general
+  - name: https://github.com/UtrechtUniversity/ibridges-ansible.git # uusrc.ibridges, = this repo
+    type: git
