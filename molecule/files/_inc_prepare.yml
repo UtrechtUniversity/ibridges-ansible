@@ -20,7 +20,7 @@
     state: directory
 
 - name: Upload testfiles
-  uusrc.ibridges_upload:
+  uusrc.ibridges.ibridges_upload:
     env:
       irods_host: irods-catalog-provider # container name
       irods_port: 1247

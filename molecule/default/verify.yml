@@ -9,7 +9,7 @@
       - /home/synctest/testfiles/penguin.txt
   tasks:
     - name: iBridges sync up
-      ibridges_sync:
+      uusrc.ibridges.ibridges_sync:
         mode: up
         env:
           irods_host: irods-catalog-provider # container name
@@ -25,7 +25,7 @@
       register: sync_up
 
     - name: iBridges sync down
-      ibridges_sync:
+      uusrc.ibridges.ibridges_sync:
         mode: down
         env:
           irods_host: irods-catalog-provider # container name
