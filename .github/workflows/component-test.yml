@@ -34,5 +34,6 @@ jobs:
           python-version: '3.11'
       - run: pip install -r ${{ env.REQUIREMENTS_FILE }}
       - run: ansible-galaxy install -r requirements.yml
+      - run: git clone https://github.com/iBridges-for-iRODS/iBridges.git ibridges && mv ibridges/docker ./docker
       - name: Run molecule tests
         run: molecule -vvv -c ${{ env.MOLECULE_CONFIG }} test -s component
