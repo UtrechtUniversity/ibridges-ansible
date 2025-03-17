@@ -24,8 +24,9 @@ jobs:
     env:
       ANSIBLE_FORCE_COLOR: '1'
       ANSIBLE_STDOUT_CALLBACK: yaml
-      REQUIREMENTS_FILE: molecule/requirements.txt
+      REQUIREMENTS_FILE: molecule/ext/requirements.txt
       MOLECULE_CONFIG: molecule/ext/molecule.yml
+      ANSIBLE_REQUIREMENTS_FILE: molecule/ext/requirements.yml
       DRIVER: docker
     steps:
       - uses: actions/checkout@v4
@@ -34,6 +35,7 @@ jobs:
           python-version: '3.11'
       - run: pip install -r ${{ env.REQUIREMENTS_FILE }}
       - run: ansible-galaxy install -r requirements.yml
+      - run: ansible-galaxy install -r ${{ env.ANSIBLE_REQUIREMENTS_FILE }}
       - run: git clone https://github.com/iBridges-for-iRODS/iBridges.git ibridges && mv ibridges/docker ./docker
       - name: Run molecule tests
         run: molecule -vvv -c ${{ env.MOLECULE_CONFIG }} test -s component
