@@ -1,7 +1,7 @@
 ---
 platforms:
   - name: workspace-src-ubuntu_focal
-    image: ghcr.io/utrechtuniversity/src-test-workspace:ubuntu_focal
+    image: ghcr.io/utrechtuniversity/src-test-workspace:ubuntu_jammy
     pre_build_image: true
     networks:
       - name: irods_test_network
