@@ -6,12 +6,12 @@
     _ibridges_user_from_path: "{{ ibridges_target_path | regex_search('^\/home\/(\\w+)(\/\\w*)?', '\\1') | default([''], true) | first }}"
     _ibridges_user: "{{ ibridges_user | default(_ibridges_user_from_path, true) | default('root', true) }}"
     _ibridges_group: "{{ ibridges_group | default(_ibridges_user, true) | default('root', true) }}"
-    _ibridges_custom_pip_location: /usr/local/pip
+    _ibridges_custom_pip_location: /tmp/irods_component/pip_dependencies
 
   tasks:
     - name: Install iBridges
       ansible.builtin.pip:
-        name: ibridges~=0.1
+        name: ibridges~=1.0
         extra_args: "--target {{ _ibridges_custom_pip_location }}"
       tags: molecule-idempotence-notest
 
