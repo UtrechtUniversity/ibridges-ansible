@@ -25,7 +25,7 @@
       with_items: "{{ _ibridges_paths }}"
 
     - name: iBridges sync
-      uusrc.ibridges_sync:
+      uusrc.ibridges.ibridges_sync:
         mode: down
         env: '{{ ibridges_env | regex_replace("\\", "") | from_yaml }}' # this is a bit hackish: the component parameter expects JSON, ResearchCloud will then strip the double-quotes from this parameter, turning it into valid YAML...
         irods_path: "{{ ibridges_irods_path }}"

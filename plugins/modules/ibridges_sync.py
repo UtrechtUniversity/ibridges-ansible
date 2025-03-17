@@ -61,7 +61,7 @@ author:
 EXAMPLES = r'''
 # Pass in a message
 - name: Sync an iRODS path to a local path
-  uusrc.ibridges_sync:
+  uusrc.ibridges.ibridges_sync:
     mode: down
     env_file: /home/user/.irods/irods_environment.json
     irods_path: ResearchData/testdata
@@ -70,7 +70,7 @@ EXAMPLES = r'''
 
 # Sync a local path to an iRODS path
 - name: Sync an iRODS path to a local path
-  uusrc.ibridges_sync:
+  uusrc.ibridges.ibridges_sync:
     mode: up
     env_file: /home/user/.irods/irods_environment.json
     irods_path: ResearchData/testdata
