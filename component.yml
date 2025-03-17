@@ -10,13 +10,13 @@
 
   tasks:
     - name: Install iBridges
-      pip:
+      ansible.builtin.pip:
         name: ibridges~=0.1
         extra_args: "--target {{ _ibridges_custom_pip_location }}"
       tags: molecule-idempotence-notest
 
     - name: Create target directory if it does not exist
-      file:
+      ansible.builtin.file:
         path: "{{ ibridges_target_path }}/{{ item | basename }}"
         state: directory
         mode: "0750"
@@ -25,7 +25,7 @@
       with_items: "{{ _ibridges_paths }}"
 
     - name: iBridges sync
-      ibridges_sync:
+      uusrc.ibridges_sync:
         mode: down
         env: '{{ ibridges_env | regex_replace("\\", "") | from_yaml }}' # this is a bit hackish: the component parameter expects JSON, ResearchCloud will then strip the double-quotes from this parameter, turning it into valid YAML...
         irods_path: "{{ ibridges_irods_path }}"
@@ -37,7 +37,7 @@
         PYTHONPATH: "{{ _ibridges_custom_pip_location ~ ':' ~ ansible_env.PYTHONPATH if ansible_env['PYTHONPATH'] is defined else _ibridges_custom_pip_location }}"
   
     - name: Change permissions of downloaded files
-      file:
+      ansible.builtin.file:
         path: "{{ ibridges_target_path }}/{{ item | basename }}"
         state: directory
         recurse: true
