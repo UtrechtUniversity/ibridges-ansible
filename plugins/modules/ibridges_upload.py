@@ -124,7 +124,6 @@ def run_module():
         with redirect_stdout(ibridges_stdout):
             with redirect_stderr(ibridges_stderr):
                 upload_result = upload(
-                    session=session,
                     local_path=source,
                     irods_path=target,
                 )
