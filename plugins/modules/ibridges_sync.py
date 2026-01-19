@@ -155,7 +155,6 @@ def run_module():
         with redirect_stdout(ibridges_stdout):
             with redirect_stderr(ibridges_stderr):
                 sync_result = sync(
-                    session=session,
                     source=source,
                     target=target,
                     max_level=None if module.params['max_level'] == 0 else module.params['max_level'],
