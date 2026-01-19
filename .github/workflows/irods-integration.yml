@@ -35,7 +35,7 @@ jobs:
             python: '3.10'
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
       - run: git clone https://github.com/iBridges-for-iRODS/iBridges.git ibridges && mv ibridges/docker ./docker
