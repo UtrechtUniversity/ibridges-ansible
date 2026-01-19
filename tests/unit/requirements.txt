@@ -1,1 +1,1 @@
-ibridges~=1.5
+ibridges~=2.0
